@@ -1,0 +1,305 @@
+{
+  "timestamp": "2026-09-20T22:04:59.419747",
+  "analysis_type": "threshold_analysis_and_model_selection",
+  "dataset_info": {
+    "total_samples": 100000,
+    "fraud_rate": 0.05,
+    "train_size": 60000,
+    "val_size": 20000,
+    "test_size": 20000,
+    "feature_count": 76
+  },
+  "split_info": {
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "random_state": 42
+  },
+  "threshold_analysis": {
+    "thresholds_analyzed": [
+      0.1,
+      0.15000000000000002,
+      0.20000000000000004,
+      0.25000000000000006,
+      0.30000000000000004,
+      0.3500000000000001,
+      0.40000000000000013,
+      0.45000000000000007,
+      0.5000000000000001,
+      0.5500000000000002,
+      0.6000000000000002,
+      0.6500000000000001,
+      0.7000000000000002,
+      0.7500000000000002,
+      0.8000000000000002,
+      0.8500000000000002,
+      0.9000000000000002
+    ],
+    "threshold_range": "0.10 to 0.90 in 0.05 increments"
+  },
+  "optimal_thresholds": {
+    "HistGradientBoosting": {
+      "threshold": 0.25000000000000006,
+      "f1": 0.47993168232280103,
+      "precision": 0.4187779433681073,
+      "recall": 0.562,
+      "fp": 780,
+      "fn": 438
+    },
+    "Random Forest": {
+      "threshold": 0.8500000000000002,
+      "f1": 0.4793315743183817,
+      "precision": 0.42778649921507067,
+      "recall": 0.545,
+      "fp": 729,
+      "fn": 455
+    },
+    "CatBoost": {
+      "threshold": 0.8500000000000002,
+      "f1": 0.48388483025354534,
+      "precision": 0.4242652599849284,
+      "recall": 0.563,
+      "fp": 764,
+      "fn": 437
+    },
+    "LightGBM": {
+      "threshold": 0.8000000000000002,
+      "f1": 0.4769945124525116,
+      "precision": 0.4127100073046019,
+      "recall": 0.565,
+      "fp": 804,
+      "fn": 435
+    },
+    "XGBoost": {
+      "threshold": 0.8000000000000002,
+      "f1": 0.4738434932987462,
+      "precision": 0.4173648134044174,
+      "recall": 0.548,
+      "fp": 765,
+      "fn": 452
+    }
+  },
+  "test_results": [
+    {
+      "Model": "HistGradientBoosting",
+      "Threshold": 0.25000000000000006,
+      "Precision": 0.42290748898678415,
+      "Recall": 0.576,
+      "F1": 0.4877222692633362,
+      "ROC-AUC": 0.8716433421052631,
+      "PR-AUC": 0.3850849774448566,
+      "False Positives": 786,
+      "False Negatives": 424,
+      "True Positives": 576,
+      "True Negatives": 18214,
+      "FPR": 0.04136842105263158
+    },
+    {
+      "Model": "Random Forest",
+      "Threshold": 0.8500000000000002,
+      "Precision": 0.43188854489164086,
+      "Recall": 0.558,
+      "F1": 0.4869109947643979,
+      "ROC-AUC": 0.8745627368421053,
+      "PR-AUC": 0.37812210846094985,
+      "False Positives": 734,
+      "False Negatives": 442,
+      "True Positives": 558,
+      "True Negatives": 18266,
+      "FPR": 0.03863157894736842
+    },
+    {
+      "Model": "CatBoost",
+      "Threshold": 0.8500000000000002,
+      "Precision": 0.43081525804038895,
+      "Recall": 0.576,
+      "F1": 0.49293966623876767,
+      "ROC-AUC": 0.8741442631578947,
+      "PR-AUC": 0.37752212782999905,
+      "False Positives": 761,
+      "False Negatives": 424,
+      "True Positives": 576,
+      "True Negatives": 18239,
+      "FPR": 0.04005263157894737
+    },
+    {
+      "Model": "LightGBM",
+      "Threshold": 0.8000000000000002,
+      "Precision": 0.4184191443074692,
+      "Recall": 0.577,
+      "F1": 0.48507776376628836,
+      "ROC-AUC": 0.8654087894736843,
+      "PR-AUC": 0.3710998223493351,
+      "False Positives": 802,
+      "False Negatives": 423,
+      "True Positives": 577,
+      "True Negatives": 18198,
+      "FPR": 0.042210526315789476
+    },
+    {
+      "Model": "XGBoost",
+      "Threshold": 0.8000000000000002,
+      "Precision": 0.4159758854559156,
+      "Recall": 0.552,
+      "F1": 0.47443059733562526,
+      "ROC-AUC": 0.8635417368421052,
+      "PR-AUC": 0.3573888537401989,
+      "False Positives": 775,
+      "False Negatives": 448,
+      "True Positives": 552,
+      "True Negatives": 18225,
+      "FPR": 0.04078947368421053
+    }
+  ],
+  "calibration": {
+    "HistGradientBoosting": 0.03615188644048123,
+    "Random Forest": 0.10700794480670883,
+    "CatBoost": 0.10402564771400341,
+    "LightGBM": 0.09387372065344203,
+    "XGBoost": 0.08382614701986313
+  },
+  "fixed_threshold_comparison": [
+    {
+      "Model": "HistGradientBoosting",
+      "Threshold": 0.25,
+      "Precision": 0.42290748898678415,
+      "Recall": 0.576,
+      "F1": 0.4877222692633362,
+      "False Positives": 786,
+      "False Negatives": 424
+    },
+    {
+      "Model": "Random Forest",
+      "Threshold": 0.25,
+      "Precision": 0.08697670101178873,
+      "Recall": 0.937,
+      "F1": 0.15917777966533594,
+      "False Positives": 9836,
+      "False Negatives": 63
+    },
+    {
+      "Model": "CatBoost",
+      "Threshold": 0.25,
+      "Precision": 0.1068860450944546,
+      "Recall": 0.877,
+      "F1": 0.19054861488321564,
+      "False Positives": 7328,
+      "False Negatives": 123
+    },
+    {
+      "Model": "LightGBM",
+      "Threshold": 0.25,
+      "Precision": 0.13000946670874092,
+      "Recall": 0.824,
+      "F1": 0.2245843554101935,
+      "False Positives": 5514,
+      "False Negatives": 176
+    },
+    {
+      "Model": "XGBoost",
+      "Threshold": 0.25,
+      "Precision": 0.15577190542420027,
+      "Recall": 0.784,
+      "F1": 0.25990386209182825,
+      "False Positives": 4249,
+      "False Negatives": 216
+    },
+    {
+      "Model": "HistGradientBoosting",
+      "Threshold": 0.5,
+      "Precision": 0.6228813559322034,
+      "Recall": 0.147,
+      "F1": 0.23786407766990292,
+      "False Positives": 89,
+      "False Negatives": 853
+    },
+    {
+      "Model": "Random Forest",
+      "Threshold": 0.5,
+      "Precision": 0.3109396277802996,
+      "Recall": 0.685,
+      "F1": 0.42772400874180455,
+      "False Positives": 1518,
+      "False Negatives": 315
+    },
+    {
+      "Model": "CatBoost",
+      "Threshold": 0.5,
+      "Precision": 0.28491171749598715,
+      "Recall": 0.71,
+      "F1": 0.4066437571592211,
+      "False Positives": 1782,
+      "False Negatives": 290
+    },
+    {
+      "Model": "LightGBM",
+      "Threshold": 0.5,
+      "Precision": 0.29974048442906576,
+      "Recall": 0.693,
+      "F1": 0.41847826086956524,
+      "False Positives": 1619,
+      "False Negatives": 307
+    },
+    {
+      "Model": "XGBoost",
+      "Threshold": 0.5,
+      "Precision": 0.31683168316831684,
+      "Recall": 0.672,
+      "F1": 0.4306312079461711,
+      "False Positives": 1449,
+      "False Negatives": 328
+    },
+    {
+      "Model": "HistGradientBoosting",
+      "Threshold": 0.65,
+      "Precision": 0.65,
+      "Recall": 0.039,
+      "F1": 0.07358490566037736,
+      "False Positives": 21,
+      "False Negatives": 961
+    },
+    {
+      "Model": "Random Forest",
+      "Threshold": 0.65,
+      "Precision": 0.3524064171122995,
+      "Recall": 0.659,
+      "F1": 0.4592334494773519,
+      "False Positives": 1211,
+      "False Negatives": 341
+    },
+    {
+      "Model": "CatBoost",
+      "Threshold": 0.65,
+      "Precision": 0.3446153846153846,
+      "Recall": 0.672,
+      "F1": 0.45559322033898303,
+      "False Positives": 1278,
+      "False Negatives": 328
+    },
+    {
+      "Model": "LightGBM",
+      "Threshold": 0.65,
+      "Precision": 0.35265438786565545,
+      "Recall": 0.651,
+      "F1": 0.45748418833450455,
+      "False Positives": 1195,
+      "False Negatives": 349
+    },
+    {
+      "Model": "XGBoost",
+      "Threshold": 0.65,
+      "Precision": 0.36519174041297936,
+      "Recall": 0.619,
+      "F1": 0.4593692022263451,
+      "False Positives": 1076,
+      "False Negatives": 381
+    }
+  ],
+  "candidate_models": [
+    "HistGradientBoosting",
+    "Random Forest",
+    "CatBoost",
+    "LightGBM",
+    "XGBoost"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "modelName": "HistGradientBoosting",
+  "modelVersion": "HistGradientBoosting v1.0",
+  "threshold": 0.25,
+  "featureCount": 76,
+  "metrics": {
+    "pr_auc": 0.3851,
+    "roc_auc": 0.8716,
+    "precision": 0.4229,
+    "recall": 0.576,
+    "f1": 0.4877,
+    "brier_score": 0.0362
+  },
+  "dataset": {
+    "total_transactions": 100000,
+    "fraud_rate": 0.05,
+    "train_size": 60000,
+    "val_size": 20000,
+    "test_size": 20000
+  },
+  "split": {
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "random_state": 42
+  },
+  "training_date": "2026-09-20",
+  "previous_model": "XGBoost v2.1",
+  "selection_rationale": "Highest PR-AUC, best calibration, fewer false positives"
+}

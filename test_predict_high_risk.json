@@ -1,0 +1,11 @@
+{
+  "transactionId": "TEST-TXN-HIGH-001",
+  "amount": 95000.00,
+  "senderUpi": "user@paytm",
+  "receiverUpi": "newuser@paytm",
+  "deviceId": "DEV-NEW999",
+  "osType": "Android",
+  "ipAddress": "10.0.0.1",
+  "location": "Delhi",
+  "merchantCategory": "P2P"
+}

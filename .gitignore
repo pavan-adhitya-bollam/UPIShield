@@ -1,0 +1,21 @@
+# Environment files
+.env
+.env.*
+!.env.example
+backend/.env
+
+# Dependencies and local Python environments
+node_modules/
+.venv/
+venv/
+
+# Build output and runtime logs
+dist/
+backend/logs/
+*.log
+
+# Local editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store

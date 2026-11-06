@@ -1,0 +1,11 @@
+{
+  "transactionId": "TEST-TXN-001",
+  "amount": 5000.00,
+  "senderUpi": "user@paytm",
+  "receiverUpi": "merchant@paytm",
+  "deviceId": "DEV-TEST123",
+  "osType": "Android",
+  "ipAddress": "192.168.1.1",
+  "location": "Mumbai",
+  "merchantCategory": "P2P"
+}
