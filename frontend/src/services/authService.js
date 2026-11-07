@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const configuredApiUrl = import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD ? 'https://upishield-j4aw.onrender.com' : 'http://localhost:5000')
+const API_BASE_URL = configuredApiUrl.replace(/\/+$/, '').endsWith('/api')
+  ? configuredApiUrl.replace(/\/+$/, '')
+  : `${configuredApiUrl.replace(/\/+$/, '')}/api`
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '')
 
 export const getProfileImageUrl = (profileImage) => {
