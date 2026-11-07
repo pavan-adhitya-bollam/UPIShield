@@ -33,7 +33,7 @@ const insufficientHistoryAssessment = () => ({
   predictionStatus: 'SKIPPED',
   assessmentStatus: 'INSUFFICIENT_TRANSACTION_HISTORY',
   provider: 'NONE',
-  assessmentMessage: INSUFFICIENT_HISTORY_MESSAGE,
+  assessmentMessage: null,
   reasons: [],
   mlRiskScore: null,
   mlFraudProbability: null,
