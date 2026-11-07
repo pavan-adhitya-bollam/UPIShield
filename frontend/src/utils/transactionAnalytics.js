@@ -14,6 +14,48 @@ const colors = {
   CRITICAL: '#ef4444'
 }
 
+const ACCOUNT_RISK_WINDOW = 30
+
+const accountRiskMultiplier = {
+  LOW: 1,
+  MEDIUM: 1.1,
+  HIGH: 1.25,
+  CRITICAL: 1.5
+}
+
+export const deriveAccountRisk = (rawTransactions = []) => {
+  const completedTransactions = rawTransactions
+    .map(normalizeTransaction)
+    .filter((transaction) => transaction.status === 'Completed')
+    .sort((left, right) => new Date(right.transactionTime || 0) - new Date(left.transactionTime || 0))
+    .slice(0, ACCOUNT_RISK_WINDOW)
+
+  if (!completedTransactions.length) {
+    return { score: 0, level: 'NO_HISTORY', transactionCount: 0 }
+  }
+
+  const weighted = completedTransactions.reduce((result, transaction, index) => {
+    const recencyWeight = 1 + ((completedTransactions.length - index) / completedTransactions.length)
+    const severityWeight = accountRiskMultiplier[transaction.riskLevel] || 1
+    const weightedScore = Math.min(100, transaction.riskScore * severityWeight)
+    return {
+      score: result.score + weightedScore * recencyWeight,
+      weight: result.weight + recencyWeight
+    }
+  }, { score: 0, weight: 0 })
+
+  const score = Math.round(Math.min(100, weighted.score / weighted.weight))
+  const level = score >= 80
+    ? 'CRITICAL'
+    : score >= 60
+      ? 'HIGH'
+      : score >= 30
+        ? 'MEDIUM'
+        : 'LOW'
+
+  return { score, level, transactionCount: completedTransactions.length }
+}
+
 export const normalizeTransaction = (transaction = {}) => {
   const transactionTime = transaction.transactionTime || transaction.createdAt
   const amount = Number(transaction.amount || 0)
@@ -77,6 +119,7 @@ export const deriveTransactionAnalytics = (rawTransactions = []) => {
   const averageRiskScore = transactions.length
     ? transactions.reduce((total, transaction) => total + transaction.riskScore, 0) / transactions.length
     : 0
+  const accountRisk = deriveAccountRisk(transactions)
   const today = new Date().toDateString()
   const todayTransactions = transactions.filter((transaction) => (
     transaction.transactionTime && new Date(transaction.transactionTime).toDateString() === today
@@ -141,6 +184,9 @@ export const deriveTransactionAnalytics = (rawTransactions = []) => {
     todayTransactions,
     averageAmount: transactions.length ? Math.round(totalAmount / transactions.length) : 0,
     averageRiskScore,
+    accountRiskScore: accountRisk.score,
+    accountRiskLevel: accountRisk.level,
+    accountRiskTransactionCount: accountRisk.transactionCount,
     riskDistribution,
     fraudVsGenuine,
     dailyTransactionsData: [...daily.values()].sort((left, right) => left.timestamp - right.timestamp),

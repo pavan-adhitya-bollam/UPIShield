@@ -21,6 +21,7 @@ import FraudDetectionPage from './pages/FraudDetection/FraudDetectionPage'
 import AnalystPage from './pages/Analyst/AnalystPage'
 import AnalyticsPage from './pages/Analytics/AnalyticsPage'
 import NotificationsPage from './pages/Notifications/NotificationsPage'
+import ReportsPage from './pages/ReportsPage'
 
 const ScrollToTop = () => {
   const location = useLocation()
@@ -84,6 +85,11 @@ const ThemeAwareApp = () => {
           <Route path="/notifications" element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <ReportsPage />
             </ProtectedRoute>
           } />
           <Route path="/fraud-result" element={

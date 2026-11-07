@@ -1,23 +1,32 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, Download, FileSpreadsheet, FileJson, BarChart3 } from 'lucide-react'
 import Button from '../Button'
 import Card from '../Card'
+import transactionService from '../../services/transactionService'
 
 const ReportSection = () => {
-  const handleExportPDF = () => {
-    console.log('Exporting PDF report')
-  }
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleExportCSV = () => {
-    console.log('Exporting CSV report')
-  }
-
-  const handleDownloadAnalytics = () => {
-    console.log('Downloading analytics')
-  }
-
-  const handleGenerateReport = () => {
-    console.log('Generating custom report')
+  const handleExportCSV = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const csv = await transactionService.exportCsv()
+      const url = URL.createObjectURL(csv)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `upi-shield-transactions-${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 0)
+    } catch (downloadError) {
+      setError(downloadError.response?.data?.message || 'Unable to download the transaction report.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const reportTypes = [
@@ -70,38 +79,28 @@ const ReportSection = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <Button
-            onClick={handleExportPDF}
+            onClick={handleExportCSV}
             variant="secondary"
             className="flex items-center justify-center gap-2"
+            disabled={loading}
           >
             <Download className="w-4 h-4" />
-            Export PDF
+            {loading ? 'Preparing...' : 'Download CSV'}
           </Button>
           <Button
             onClick={handleExportCSV}
             variant="secondary"
             className="flex items-center justify-center gap-2"
+            disabled={loading}
           >
             <FileSpreadsheet className="w-4 h-4" />
-            Export CSV
+            {loading ? 'Preparing...' : 'Export CSV'}
           </Button>
-          <Button
-            onClick={handleDownloadAnalytics}
-            variant="secondary"
-            className="flex items-center justify-center gap-2"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </Button>
-          <Button
-            onClick={handleGenerateReport}
-            variant="primary"
-            className="flex items-center justify-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Generate
-          </Button>
+          <div className="flex items-center justify-center text-sm text-gray-400">
+            CSV includes authorized transaction history
+          </div>
         </div>
+        {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
         {/* Report Types */}
         <div className="space-y-3">

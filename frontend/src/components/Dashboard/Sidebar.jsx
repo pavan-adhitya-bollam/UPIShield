@@ -9,6 +9,7 @@ import {
   History,
   Shield,
   BarChart3,
+  FileText,
   Bell,
   User,
   Settings,
@@ -31,6 +32,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { icon: BarChart3, label: 'Analytics', route: '/analytics' },
     { icon: User, label: 'Analyst', route: '/analyst' },
     { icon: Bell, label: 'Notifications', route: '/notifications' },
+    { icon: FileText, label: 'Reports', route: '/reports' },
     { icon: User, label: 'Profile', route: '/profile' },
     { icon: Settings, label: 'Settings', route: '/settings' },
   ]

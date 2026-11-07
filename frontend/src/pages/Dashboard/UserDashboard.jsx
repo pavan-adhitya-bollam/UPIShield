@@ -32,7 +32,7 @@ const UserDashboard = () => {
   useEffect(() => {
     let active = true
 
-    transactionService.getAllTransactionHistory()
+    const loadAnalytics = () => transactionService.getAllTransactionHistory()
       .then((transactions) => {
         if (active) {
           setAnalytics(deriveTransactionAnalytics(transactions))
@@ -42,7 +42,13 @@ const UserDashboard = () => {
         if (active) setAnalytics(emptyTransactionAnalytics)
       })
 
-    return () => { active = false }
+    loadAnalytics()
+    window.addEventListener('upi-shield:transaction-created', loadAnalytics)
+
+    return () => {
+      active = false
+      window.removeEventListener('upi-shield:transaction-created', loadAnalytics)
+    }
   }, [])
 
   const stats = [
@@ -52,7 +58,7 @@ const UserDashboard = () => {
     ['Model-predicted Fraud', analytics.fraudulentTransactions.toLocaleString(), AlertTriangle, 'red'],
     ['Safe Transactions', Math.max(analytics.totalTransactions - analytics.fraudulentTransactions, 0).toLocaleString(), CheckCircle, 'blue']
   ]
-  const riskStatus = analytics.averageRiskScore >= 75 ? 'CRITICAL' : analytics.averageRiskScore >= 50 ? 'HIGH' : analytics.averageRiskScore >= 25 ? 'MEDIUM' : 'LOW'
+  const riskStatus = analytics.accountRiskLevel
   const fraudAlerts = analytics.recentTransactions
     .filter((transaction) => ['HIGH', 'CRITICAL'].includes(transaction.riskLevel))
     .map((transaction) => ({
@@ -105,7 +111,7 @@ const UserDashboard = () => {
               {/* Right Column - Widgets */}
               <div className="space-y-6">
                 <RiskScoreWidget
-                  score={analytics.totalTransactions > 0 ? Math.round(analytics.averageRiskScore) : undefined}
+                  score={analytics.accountRiskScore}
                   status={riskStatus}
                 />
                 

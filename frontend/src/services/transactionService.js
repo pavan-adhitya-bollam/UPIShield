@@ -6,6 +6,9 @@ export const transactionService = {
   sendMoney: async (transactionData) => {
     try {
       const response = await api.post('/transactions/send', transactionData)
+      window.dispatchEvent(new CustomEvent('upi-shield:transaction-created', {
+        detail: response.data?.transaction || response.data
+      }))
       return response.data
     } catch (error) {
       console.error('Send money error:', error)
@@ -97,6 +100,7 @@ export const transactionService = {
       throw error
     }
   }
+
 }
 
 export default transactionService

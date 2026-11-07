@@ -403,38 +403,52 @@ const exportCsv = async (user, filters = {}) => {
 
   const csvHeaders = [
     'Transaction ID',
+    'Sender',
+    'Receiver',
+    'Receiver UPI ID',
     'Reference Number',
     'Receipt Number',
     'Transaction Time',
     'Sender UPI',
     'Receiver UPI',
     'Amount',
+    'Charges',
+    'Total Amount',
     'Status',
+    'Transaction Risk Score',
     'Risk Level',
     'Fraud Probability',
     'Transaction Type',
     'Merchant Category',
     'Purpose',
     'Note',
-    'Payment Method'
+    'Payment Method',
+    'Payment Status'
   ];
 
   const csvRows = transactions.map((transaction) => [
     transaction.transactionId,
+    transaction.sender?.name || '',
+    transaction.receiver?.name || '',
+    transaction.receiver?.upiId || transaction.receiverUpi || '',
     transaction.referenceNumber,
     transaction.receiptNumber || '',
     transaction.transactionTime ? new Date(transaction.transactionTime).toISOString() : '',
     transaction.senderUpi,
     transaction.receiverUpi,
     transaction.amount,
+    0,
+    transaction.amount,
     transaction.status,
+    transaction.riskScore ?? 0,
     transaction.riskLevel,
     transaction.fraudProbability,
     transaction.transactionType,
     transaction.merchantCategory || '',
     transaction.purpose || '',
     transaction.note || '',
-    transaction.paymentMethod
+    transaction.paymentMethod,
+    transaction.paymentStatus || (transaction.status === 'SUCCESS' ? 'Success' : 'Failed')
   ]);
 
   const csvContent = [

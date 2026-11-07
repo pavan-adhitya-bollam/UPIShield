@@ -15,6 +15,10 @@ const RiskScoreWidget = ({ score, status = 'LOW' }) => {
         return { text: 'text-yellow-400', bg: 'bg-yellow-500', icon: AlertTriangle }
       case 'HIGH':
         return { text: 'text-red-400', bg: 'bg-red-500', icon: AlertTriangle }
+      case 'CRITICAL':
+        return { text: 'text-red-500', bg: 'bg-red-600', icon: AlertTriangle }
+      case 'NO_HISTORY':
+        return { text: 'text-gray-400', bg: 'bg-gray-500', icon: Shield }
       default:
         return { text: 'text-green-400', bg: 'bg-green-500', icon: CheckCircle }
     }
@@ -23,23 +27,7 @@ const RiskScoreWidget = ({ score, status = 'LOW' }) => {
   const statusConfig = getStatusColor(status)
   const StatusIcon = statusConfig.icon
 
-  if (!hasRiskData) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card>
-          <div className="flex flex-col items-center text-center">
-            <StatusIcon className="w-10 h-10 text-gray-400" />
-            <h3 className="mt-4 text-lg font-semibold text-white">Risk Score</h3>
-            <p className="mt-2 text-sm text-gray-400">No transaction risk data yet</p>
-          </div>
-        </Card>
-      </motion.div>
-    )
-  }
+  if (!hasRiskData) return null
 
   return (
     <motion.div
@@ -93,7 +81,9 @@ const RiskScoreWidget = ({ score, status = 'LOW' }) => {
               <h3 className="text-lg font-semibold text-white">Risk Score</h3>
             </div>
             <p className="text-gray-400 text-sm">
-              Your account security is {status.toLowerCase()}
+              {status === 'NO_HISTORY'
+                ? 'No completed transaction history yet'
+                : `Your account security is ${status.toLowerCase()}`}
             </p>
           </div>
         </div>

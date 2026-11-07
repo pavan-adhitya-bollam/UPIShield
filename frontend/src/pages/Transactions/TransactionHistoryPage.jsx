@@ -60,6 +60,9 @@ const TransactionHistoryPage = () => {
 
   useEffect(() => {
     loadTransactions()
+    const handleTransactionCreated = () => loadTransactions()
+    window.addEventListener('upi-shield:transaction-created', handleTransactionCreated)
+    return () => window.removeEventListener('upi-shield:transaction-created', handleTransactionCreated)
   }, [])
 
   useEffect(() => {
