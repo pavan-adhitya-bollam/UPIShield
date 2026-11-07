@@ -335,7 +335,15 @@ const assessTransaction = async (transactionData = {}) => {
     };
   }
 
-  const prediction = await predictionProvider.predict(behavioralFeatures);
+  let prediction;
+  try {
+    prediction = await predictionProvider.predict(behavioralFeatures);
+  } catch (error) {
+    throw new ErrorResponse(
+      'Fraud prediction service is temporarily unavailable. Please try again shortly.',
+      503
+    );
+  }
   const finalRiskScore = Math.min(100, prediction.riskScore + behavioralRisk.contribution);
 
   return {

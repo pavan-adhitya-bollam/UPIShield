@@ -129,10 +129,10 @@ const TransactionHistoryPage = () => {
     // Sort
     switch (filters.sortBy) {
       case 'newest':
-        filtered.sort((a, b) => new Date(b.date) - new Date(a.date))
+        filtered.sort((a, b) => new Date(b.transactionTime || 0) - new Date(a.transactionTime || 0))
         break
       case 'oldest':
-        filtered.sort((a, b) => new Date(a.date) - new Date(b.date))
+        filtered.sort((a, b) => new Date(a.transactionTime || 0) - new Date(b.transactionTime || 0))
         break
       case 'highestAmount':
         filtered.sort((a, b) => b.amount - a.amount)

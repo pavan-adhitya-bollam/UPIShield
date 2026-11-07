@@ -102,4 +102,19 @@ describe('fraud assessment history gating', () => {
     expect(predictionProvider.predict).toHaveBeenCalledTimes(1);
     expect(result.riskScore).toBe(12);
   });
+
+  test('returns a service-unavailable error when ML prediction fails', async () => {
+    setHistory(Array.from({ length: 10 }, (_, index) => transaction(30 + index * 30)));
+    predictionProvider.predict = jest.fn().mockRejectedValue(new Error('upstream unavailable'));
+
+    await expect(assessTransaction({
+      userId: 'user-1',
+      amount: 1000,
+      receiverUpi: 'familiar@upi',
+      transactionTime: referenceTime
+    })).rejects.toMatchObject({
+      statusCode: 503,
+      message: 'Fraud prediction service is temporarily unavailable. Please try again shortly.'
+    });
+  });
 });
