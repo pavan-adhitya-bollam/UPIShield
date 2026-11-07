@@ -84,9 +84,7 @@ export const normalizeTransaction = (transaction = {}) => {
     riskLevel: transaction.riskLevel || 'LOW',
     assessmentStatus: transaction.assessmentStatus || 'COMPLETED',
     predictionProvider: transaction.predictionProvider || transaction.provider || 'NONE',
-    assessmentMessage: transaction.assessmentStatus === 'INSUFFICIENT_TRANSACTION_HISTORY'
-      ? 'New Account – No Previous Transaction History. Behavioural Risk Assessment Not Available.'
-      : '',
+    assessmentMessage: '',
     riskScore: Number(transaction.riskScore || probabilityPercent),
     fraudProbability: probabilityPercent,
     paymentStatus: transaction.paymentStatus || (transaction.status === 'SUCCESS' ? 'Success' : 'Failed'),

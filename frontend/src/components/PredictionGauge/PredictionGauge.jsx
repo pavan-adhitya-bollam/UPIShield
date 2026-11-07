@@ -14,7 +14,8 @@ const PredictionGauge = ({
   const offset = circumference - (safeRiskScore / 100) * circumference
   const formattedProbability = Number.isFinite(Number(mlFraudProbability))
     ? `${Number(mlFraudProbability).toFixed(2)}%`
-    : 'Not available'
+    : '0.00%'
+  const displayRiskLevel = riskLevel === 'NO_HISTORY' ? 'LOW' : riskLevel
 
   const getRiskConfig = (level) => {
     switch (level) {
@@ -69,7 +70,7 @@ const PredictionGauge = ({
     }
   }
 
-  const riskConfig = getRiskConfig(riskLevel)
+  const riskConfig = getRiskConfig(displayRiskLevel)
   const RiskIcon = riskConfig.icon
 
   return (
@@ -126,7 +127,7 @@ const PredictionGauge = ({
             {/* Center Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-5xl font-bold text-white">{safeRiskScore}/100</span>
-              <span className={`text-sm font-medium ${riskConfig.textColor} mt-1`}>{riskLevel} RISK</span>
+              <span className={`text-sm font-medium ${riskConfig.textColor} mt-1`}>{displayRiskLevel} RISK</span>
             </div>
           </div>
 
@@ -170,7 +171,7 @@ const PredictionGauge = ({
           {/* Risk Level Badge */}
           <div className={`flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r ${riskConfig.gradient}`}>
             <RiskIcon className="w-5 h-5 text-white" />
-            <span className="text-white font-semibold text-lg">{riskLevel} RISK LEVEL</span>
+            <span className="text-white font-semibold text-lg">{displayRiskLevel} RISK LEVEL</span>
           </div>
         </div>
       </Card>

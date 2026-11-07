@@ -6,9 +6,10 @@ const AIRecommendation = ({ riskLevel = 'LOW', recommendation = {} }) => {
   const getRecommendationConfig = (level) => {
     switch (level) {
       case 'LOW':
+      case 'NO_HISTORY':
         return {
-          title: 'Proceed Normally',
-          description: 'Transaction is safe to proceed without additional verification',
+          title: 'Transaction appears safe.',
+          description: 'No suspicious activity detected.',
           color: 'green',
           gradient: 'from-green-500 to-green-600',
           bgColor: 'bg-green-500/20',
@@ -49,17 +50,6 @@ const AIRecommendation = ({ riskLevel = 'LOW', recommendation = {} }) => {
           textColor: 'text-purple-400',
           icon: AlertTriangle
         }
-      case 'NO_HISTORY':
-        return {
-          title: 'Behavioural Assessment Unavailable',
-          description: 'This account does not yet have enough transaction history for a personalized ML assessment.',
-          color: 'blue',
-          gradient: 'from-blue-500 to-blue-600',
-          bgColor: 'bg-blue-500/20',
-          borderColor: 'border-blue-500/30',
-          textColor: 'text-blue-300',
-          icon: Shield
-        }
       default:
         return {
           title: 'Proceed Normally',
@@ -75,6 +65,7 @@ const AIRecommendation = ({ riskLevel = 'LOW', recommendation = {} }) => {
   }
 
   const config = getRecommendationConfig(riskLevel)
+  const displayRiskLevel = riskLevel === 'NO_HISTORY' ? 'LOW' : riskLevel
   const RecommendationIcon = config.icon
 
   return (
@@ -105,7 +96,7 @@ const AIRecommendation = ({ riskLevel = 'LOW', recommendation = {} }) => {
         <div className={`flex items-center justify-center gap-2 p-4 rounded-xl ${config.bgColor} border ${config.borderColor}`}>
           <RecommendationIcon className={`w-5 h-5 ${config.textColor}`} />
           <span className={`text-lg font-semibold ${config.textColor}`}>
-            {riskLevel} RISK LEVEL
+            {displayRiskLevel} RISK LEVEL
           </span>
         </div>
 
@@ -114,7 +105,9 @@ const AIRecommendation = ({ riskLevel = 'LOW', recommendation = {} }) => {
           <div className="flex items-center gap-2">
             <Brain className="w-4 h-4 text-primary-400" />
             <p className="text-sm text-gray-300">
-              This recommendation is based on ML model analysis of transaction patterns, user behavior, and historical data
+              {riskLevel === 'NO_HISTORY'
+                ? 'This transaction passed the available safety checks.'
+                : 'This recommendation is based on ML model analysis of transaction patterns, user behavior, and historical data'}
             </p>
           </div>
         </div>

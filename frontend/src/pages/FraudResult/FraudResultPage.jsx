@@ -196,21 +196,14 @@ const FraudResultPage = () => {
               <TransactionTimeline steps={createTimelineSteps(timelineEvents)} />
             </div>
 
-            {predictionData.assessmentStatus === 'INSUFFICIENT_TRANSACTION_HISTORY' && (
-              <div className="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200">
-                <p className="font-semibold">Behavioural assessment unavailable</p>
-                <p className="text-sm mt-1">
-                  {predictionData.assessmentMessage || 'New Account – No Previous Transaction History. Behavioural Risk Assessment Not Available.'}
-                </p>
-              </div>
-            )}
-
             {/* Top Section - Prediction Gauge & AI Recommendation */}
             {paymentAttempted && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <PredictionGauge
                 finalRiskScore={predictionData.riskScore}
-                mlFraudProbability={predictionData.mlFraudProbability ?? predictionData.fraudProbability}
+                mlFraudProbability={predictionData.riskLevel === 'NO_HISTORY'
+                  ? 0
+                  : predictionData.mlFraudProbability ?? predictionData.fraudProbability}
                 riskLevel={predictionData.riskLevel}
                 confidence={predictionData.predictionConfidence}
                 prediction={predictionData.predictionStatus === 'FRAUD' ? 'FRAUD' : 'SAFE'}
