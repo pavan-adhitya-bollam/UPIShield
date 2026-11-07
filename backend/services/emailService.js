@@ -256,13 +256,14 @@ const sendEmail = async ({ to, subject, text, html, from, fromName }) => {
         message: apiError?.response?.data?.message || apiError?.message
       });
 
+      if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
+        throw ApiError.serviceUnavailable('Brevo API authentication failed. Verify BREVO_API_KEY (must start with xkeysib-) in environment variables.');
+      }
+      if (apiError?.response?.status === 400 && /sender/i.test(apiError?.response?.data?.message || '')) {
+        throw ApiError.serviceUnavailable(`Brevo rejected sender address (${senderEmail}). Ensure this sender is verified in your Brevo account under Senders & IP.`);
+      }
+
       if (!hasSmtpConfig) {
-        if (apiError?.response?.status === 401 || apiError?.response?.status === 403) {
-          throw ApiError.serviceUnavailable('Brevo API authentication failed. Verify BREVO_API_KEY in environment variables.');
-        }
-        if (apiError?.response?.status === 400 && /sender/i.test(apiError?.response?.data?.message || '')) {
-          throw ApiError.serviceUnavailable(`Brevo rejected sender address (${senderEmail}). Ensure this sender is verified in your Brevo account.`);
-        }
         throw ApiError.serviceUnavailable(`Brevo email delivery failed: ${apiError?.response?.data?.message || apiError?.message}`);
       }
       logger.info('Falling back to Brevo SMTP relay');
@@ -319,8 +320,13 @@ const sendEmail = async ({ to, subject, text, html, from, fromName }) => {
     }
 
     if (['ETIMEDOUT', 'ECONNECTION', 'ECONNREFUSED', 'ESOCKET', 'ENOTFOUND'].includes(error?.code)) {
+      const isSmtpKeyInApiKeySlot = typeof config.apiKey === 'string' && config.apiKey.trim().startsWith('xsmtpsib-');
+      const apiKeyAdvice = isSmtpKeyInApiKeySlot
+        ? 'Your BREVO_API_KEY is currently set to an SMTP key (starts with xsmtpsib-). Replace it with a Brevo API v3 key (starts with xkeysib-) from Brevo Dashboard → SMTP & API → API Keys to deliver via HTTPS (port 443).'
+        : 'set BREVO_API_KEY (starts with xkeysib-) in Render to deliver via HTTPS (port 443).';
+
       throw ApiError.serviceUnavailable(
-        'Brevo email service connection timed out. On cloud hosts like Render Free tier, SMTP ports (587/465) are blocked; set BREVO_API_KEY in Render to deliver via HTTPS (port 443).'
+        `Brevo email service connection timed out. On cloud hosts like Render Free tier, SMTP ports (587/465) are blocked; ${apiKeyAdvice}`
       );
     }
 
