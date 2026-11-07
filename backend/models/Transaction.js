@@ -188,7 +188,21 @@ const transactionSchema = new mongoose.Schema({
       locationChanged: Boolean,
       highVelocity: Boolean,
       transactionFrequency: Number,
-      amountLast24Hours: Number
+      amountLast24Hours: Number,
+      transactionsLast1Minute: Number,
+      transactionsLast5Minutes: Number,
+      transactionsLast10Minutes: Number,
+      transactionsLastHour: Number,
+      amountSentLast5Minutes: Number,
+      amountSentLast24Hours: Number,
+      uniqueReceiversLast10Minutes: Number,
+      uniqueReceiversToday: Number,
+      historicalAverageAmount: Number,
+      timeSincePreviousTransactionMs: Number,
+      transactionFrequencyPerHour: Number,
+      previousTransactionCount: Number,
+      decimalPattern: Boolean,
+      behavioralRiskContribution: Number
     },
     reasons: [{
       feature: String,

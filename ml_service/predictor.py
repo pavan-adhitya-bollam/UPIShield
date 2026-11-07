@@ -36,7 +36,7 @@ class Predictor:
 
         return {
             "riskScore": risk_score,
-            "fraudProbability": round(probability, 2),
+            "fraudProbability": probability,
             "riskLevel": risk_level,
             "predictionStatus": prediction_status,
             "predictionConfidence": prediction_confidence,

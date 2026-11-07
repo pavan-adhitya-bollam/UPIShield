@@ -3,6 +3,12 @@ const Transaction = require('../models/Transaction');
 const User = require('../models/User');
 const { parsePagination, generatePredictionId } = require('../utils/helpers');
 const ErrorResponse = require('../utils/errorResponse');
+const {
+  buildBehavioralFeatures,
+  calculateBehavioralRisk,
+  classifyRiskLevel,
+  isCompletedTransaction
+} = require('./behavioralRisk');
 const predictionProvider = require('./PredictionProvider');
 
 const MIN_BEHAVIORAL_HISTORY = Math.max(
@@ -29,6 +35,10 @@ const insufficientHistoryAssessment = () => ({
   provider: 'NONE',
   assessmentMessage: INSUFFICIENT_HISTORY_MESSAGE,
   reasons: [],
+  mlRiskScore: null,
+  mlFraudProbability: null,
+  behavioralRiskContribution: 0,
+  assessmentStrategy: 'INSUFFICIENT_HISTORY',
   predictionId: null,
   isFraud: false
 });
@@ -52,12 +62,14 @@ const buildPredictionRecord = (payload, prediction, providerName) => ({
     isFraud: prediction.isFraud
   },
   features: {
-    customerBehaviourDeviation: prediction.behaviourAnalysis?.customerBehaviourDeviation ? 1 : 0,
-    deviceChanged: prediction.deviceAnalysis?.deviceChanged || false,
-    newBeneficiary: prediction.beneficiaryAnalysis?.newBeneficiary || false,
-    locationChanged: prediction.locationAnalysis?.locationChanged || false,
-    highVelocity: prediction.velocityAnalysis?.highTransactionVelocity || false,
-    transactionFrequency: prediction.velocityAnalysis?.highTransactionVelocity ? 5 : 1,
+    ...(prediction.behavioralFeatures || {}),
+    customerBehaviourDeviation: prediction.behavioralFeatures?.customerBehaviourDeviation ?? 0,
+    deviceChanged: prediction.behavioralFeatures?.deviceChanged || false,
+    newBeneficiary: prediction.behavioralFeatures?.newBeneficiary || false,
+    locationChanged: prediction.behavioralFeatures?.locationChanged || false,
+    highVelocity: (prediction.behavioralFeatures?.transactionsLast10Minutes || 0) >= 3,
+    transactionFrequency: prediction.behavioralFeatures?.transactionFrequencyPerHour || 0,
+    behavioralRiskContribution: prediction.behavioralRisk?.contribution || 0,
     merchantCategory: payload.merchantCategory || 'Transfer',
     amountLast24Hours: payload.amount || 0,
     transactionAmount: payload.amount || 0,
@@ -119,13 +131,15 @@ const syncTransactionWithPrediction = async (transactionId, prediction) => {
     riskLevel: prediction.riskLevel,
     confidence: prediction.predictionConfidence,
     features: {
-      customerBehaviourDeviation: prediction.behaviourAnalysis?.customerBehaviourDeviation ? 1 : 0,
-      deviceChanged: prediction.deviceAnalysis?.deviceChanged || false,
-      newBeneficiary: prediction.beneficiaryAnalysis?.newBeneficiary || false,
-      locationChanged: prediction.locationAnalysis?.locationChanged || false,
-      highVelocity: prediction.velocityAnalysis?.highTransactionVelocity || false,
-      transactionFrequency: prediction.velocityAnalysis?.highTransactionVelocity ? 5 : 1,
-      amountLast24Hours: transaction.amount
+      ...(prediction.behavioralFeatures || {}),
+      customerBehaviourDeviation: prediction.behavioralFeatures?.customerBehaviourDeviation ?? 0,
+      deviceChanged: prediction.behavioralFeatures?.deviceChanged || false,
+      newBeneficiary: prediction.behavioralFeatures?.newBeneficiary || false,
+      locationChanged: prediction.behavioralFeatures?.locationChanged || false,
+      highVelocity: (prediction.behavioralFeatures?.transactionsLast10Minutes || 0) >= 3,
+      transactionFrequency: prediction.behavioralFeatures?.transactionFrequencyPerHour || 0,
+      behavioralRiskContribution: prediction.behavioralRisk?.contribution || 0,
+      amountLast24Hours: prediction.behavioralFeatures?.amountSentLast24Hours ?? transaction.amount
     },
     reasons: (prediction.fraudReasons || []).map((reason) => ({
       feature: reason,
@@ -192,12 +206,24 @@ const buildPredictionResponse = (predictionRecord, prediction) => ({
 
 const predict = async (payload = {}, options = {}) => {
   const prediction = await predictionProvider.predict(payload);
-  const record = await persistPrediction({ ...payload, userId: options.userId || null }, prediction, 'predict');
-  if (payload.transactionId) {
-    await syncTransactionWithPrediction(payload.transactionId, prediction);
+  const enrichedPrediction = {
+    ...prediction,
+    behavioralFeatures: payload,
+    behavioralRisk: options.behavioralRisk || null
+  };
+  const record = await persistPrediction(
+    { ...payload, userId: options.userId || null },
+    enrichedPrediction,
+    'predict'
+  );
+  if (payload.transactionId && options.syncTransaction !== false) {
+    await syncTransactionWithPrediction(payload.transactionId, enrichedPrediction);
   }
 
-  return buildPredictionResponse(record, prediction);
+  return {
+    ...buildPredictionResponse(record, enrichedPrediction),
+    behavioralFeatures: payload
+  };
 };
 
 const analyze = async (payload = {}, options = {}) => {
@@ -224,86 +250,114 @@ const analyzeTransaction = async (transactionData) => {
     transactionData.transactionId
   );
 
-  if (previousTransactions.length < MIN_BEHAVIORAL_HISTORY) {
+  const completedTransactions = previousTransactions.filter(isCompletedTransaction);
+  const enrichedTransactionData = buildBehavioralFeatures(transactionData, completedTransactions);
+  const behavioralRisk = calculateBehavioralRisk(enrichedTransactionData);
+  if (completedTransactions.length < MIN_BEHAVIORAL_HISTORY && behavioralRisk.contribution === 0) {
     return insufficientHistoryAssessment();
   }
-
-  const enrichedTransactionData = buildBehavioralFeatures(transactionData, previousTransactions);
+  if (completedTransactions.length < MIN_BEHAVIORAL_HISTORY) {
+    return {
+      ...insufficientHistoryAssessment(),
+      riskScore: behavioralRisk.contribution,
+      riskLevel: classifyRiskLevel(behavioralRisk.contribution),
+      assessmentStatus: 'COMPLETED',
+      predictionStatus: 'SKIPPED',
+      provider: 'BEHAVIORAL_RULES',
+      assessmentMessage: 'Behavioral rule assessment used because transaction history is insufficient for ML prediction.',
+      reasons: behavioralRisk.reasons,
+      behavioralFeatures: enrichedTransactionData,
+      behavioralRisk,
+      behavioralRiskContribution: behavioralRisk.contribution,
+      assessmentStrategy: 'BEHAVIORAL_RULES'
+    };
+  }
   const prediction = await predict(enrichedTransactionData, {
-    userId: transactionData.userId || null
+    userId: transactionData.userId || null,
+    behavioralRisk,
+    syncTransaction: false
   });
+  const finalRiskScore = Math.min(100, prediction.riskScore + behavioralRisk.contribution);
+  const finalPrediction = {
+    ...prediction,
+    riskScore: finalRiskScore,
+    riskLevel: classifyRiskLevel(finalRiskScore),
+    fraudReasons: [...(prediction.fraudReasons || []), ...behavioralRisk.reasons],
+    behavioralFeatures: enrichedTransactionData,
+    behavioralRisk
+  };
+  await syncTransactionWithPrediction(transactionData.transactionId, finalPrediction);
 
   return {
-    riskScore: prediction.riskScore,
+    riskScore: finalRiskScore,
     fraudProbability: prediction.fraudProbability,
-    riskLevel: prediction.riskLevel,
+    riskLevel: finalPrediction.riskLevel,
     confidence: prediction.predictionConfidence,
-    reasons: prediction.fraudReasons,
+    reasons: finalPrediction.fraudReasons,
     predictionId: prediction.predictionId,
     assessmentStatus: 'COMPLETED',
     provider: prediction.provider,
     assessmentMessage: null,
-    isFraud: prediction.isFraud
-  };
-};
-
-const buildBehavioralFeatures = (transactionData, previousTransactions) => {
-  const now = new Date();
-  const transactionAmount = Number(transactionData.amount || 0);
-  const inWindow = (milliseconds) => previousTransactions.filter((transaction) => (
-    now - new Date(transaction.transactionTime || transaction.createdAt) <= milliseconds
-  ));
-  const lastHour = inWindow(60 * 60 * 1000);
-  const lastDay = inWindow(24 * 60 * 60 * 1000);
-  const receiversToday = new Set(
-    previousTransactions
-      .filter((transaction) => new Date(transaction.transactionTime || transaction.createdAt).toDateString() === now.toDateString())
-      .map((transaction) => transaction.receiverUpi)
-      .filter(Boolean)
-  );
-  const historicalAmounts = previousTransactions.map((transaction) => Number(transaction.amount || 0));
-  const averageAmount = historicalAmounts.reduce((sum, amount) => sum + amount, 0) / historicalAmounts.length;
-  const deviation = averageAmount > 0 ? Math.min(transactionAmount / averageAmount, 10) : 0;
-
-  return {
-    ...transactionData,
-    transactionsLast10Minutes: inWindow(10 * 60 * 1000).length,
-    transactionsLastHour: lastHour.length,
-    transactionsLast24Hours: lastDay.length,
-    amountSentLast24Hours: lastDay.reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0),
-    uniqueReceiversToday: receiversToday.size,
-    customerBehaviourDeviation: deviation,
-    knownDevice: previousTransactions.some((transaction) => transaction.deviceInfo?.deviceId === transactionData.deviceId),
-    locationChanged: previousTransactions.length > 0 &&
-      previousTransactions[0].locationInfo?.city !== transactionData.location?.city,
-    newBeneficiary: !previousTransactions.some((transaction) => transaction.receiverUpi === transactionData.receiverUpi)
+    isFraud: prediction.isFraud || finalRiskScore >= 60,
+    predictionStatus: prediction.predictionStatus,
+    predictionConfidence: prediction.predictionConfidence,
+    behavioralFeatures: enrichedTransactionData,
+    behavioralRisk,
+    mlRiskScore: prediction.riskScore,
+    mlFraudProbability: prediction.fraudProbability,
+    behavioralRiskContribution: behavioralRisk.contribution,
+    assessmentStrategy: 'HYBRID_ML_BEHAVIORAL'
   };
 };
 
 const assessTransaction = async (transactionData = {}) => {
   const previousTransactions = await getPreviousTransactions(transactionData.userId);
-  if (previousTransactions.length < MIN_BEHAVIORAL_HISTORY) {
+  const completedTransactions = previousTransactions.filter(isCompletedTransaction);
+  const behavioralFeatures = buildBehavioralFeatures(transactionData, completedTransactions);
+  const behavioralRisk = calculateBehavioralRisk(behavioralFeatures);
+  if (completedTransactions.length < MIN_BEHAVIORAL_HISTORY && behavioralRisk.contribution === 0) {
     return insufficientHistoryAssessment();
   }
+  if (completedTransactions.length < MIN_BEHAVIORAL_HISTORY) {
+    return {
+      ...insufficientHistoryAssessment(),
+      riskScore: behavioralRisk.contribution,
+      riskLevel: classifyRiskLevel(behavioralRisk.contribution),
+      assessmentStatus: 'COMPLETED',
+      predictionStatus: 'SKIPPED',
+      provider: 'BEHAVIORAL_RULES',
+      assessmentMessage: 'Behavioral rule assessment used because transaction history is insufficient for ML prediction.',
+      reasons: behavioralRisk.reasons,
+      behavioralFeatures,
+      behavioralRisk,
+      behavioralRiskContribution: behavioralRisk.contribution,
+      assessmentStrategy: 'BEHAVIORAL_RULES'
+    };
+  }
 
-  const prediction = await predictionProvider.predict(
-    buildBehavioralFeatures(transactionData, previousTransactions)
-  );
+  const prediction = await predictionProvider.predict(behavioralFeatures);
+  const finalRiskScore = Math.min(100, prediction.riskScore + behavioralRisk.contribution);
 
   return {
-    riskScore: prediction.riskScore,
+    riskScore: finalRiskScore,
     fraudProbability: prediction.fraudProbability,
-    riskLevel: prediction.riskLevel,
+    riskLevel: classifyRiskLevel(finalRiskScore),
     confidence: prediction.predictionConfidence,
     predictionStatus: prediction.predictionStatus,
     predictionConfidence: prediction.predictionConfidence,
-    fraudReasons: prediction.fraudReasons,
+    fraudReasons: [...(prediction.fraudReasons || []), ...behavioralRisk.reasons],
     predictionTime: prediction.predictionTime,
     modelVersion: prediction.modelVersion,
     provider: prediction.provider,
     assessmentStatus: 'COMPLETED',
     assessmentMessage: null,
-    isFraud: prediction.isFraud
+    isFraud: prediction.isFraud || finalRiskScore >= 60,
+    behavioralFeatures,
+    behavioralRisk,
+    mlRiskScore: prediction.riskScore,
+    mlFraudProbability: prediction.fraudProbability,
+    behavioralRiskContribution: behavioralRisk.contribution,
+    assessmentStrategy: 'HYBRID_ML_BEHAVIORAL'
   };
 };
 
@@ -479,5 +533,7 @@ module.exports = {
   getModelStatus,
   getHealth,
   getFeatureImportance: async () => [],
+  buildBehavioralFeatures,
+  calculateBehavioralRisk,
   verifyPrediction
 };

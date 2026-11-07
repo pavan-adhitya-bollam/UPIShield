@@ -67,7 +67,12 @@ const SendMoneyPage = () => {
         predictionConfidence: assessment.predictionConfidence,
         fraudReasons: assessment.fraudReasons,
         provider: assessment.provider,
-        modelVersion: assessment.modelVersion
+        modelVersion: assessment.modelVersion,
+        mlRiskScore: assessment.mlRiskScore,
+        mlFraudProbability: assessment.mlFraudProbability,
+        behavioralRiskContribution: assessment.behavioralRiskContribution,
+        assessmentStrategy: assessment.assessmentStrategy,
+        behavioralFeatures: assessment.behavioralFeatures
       }
       setTransactionData(assessedTransaction)
       navigate('/fraud-result', {
@@ -83,6 +88,11 @@ const SendMoneyPage = () => {
           fraudReasons: assessment.fraudReasons,
           provider: assessment.provider,
           modelVersion: assessment.modelVersion,
+          mlRiskScore: assessment.mlRiskScore,
+          mlFraudProbability: assessment.mlFraudProbability,
+          behavioralRiskContribution: assessment.behavioralRiskContribution,
+          assessmentStrategy: assessment.assessmentStrategy,
+          behavioralFeatures: assessment.behavioralFeatures,
           timelineEvents: completedTimelineEvents
         }
       })

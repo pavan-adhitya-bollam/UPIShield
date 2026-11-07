@@ -92,19 +92,7 @@ class PredictionProvider {
   }
 
   async _callFastApiAnalyze(payload) {
-    const prediction = await this._callFastApiPredict(payload);
-    const analysis = await this.mockProvider.analyze(payload);
-
-    return {
-      ...analysis,
-      ...prediction,
-      provider: 'fastapi',
-      predictionTime: prediction.predictionTime,
-      processingTime: prediction.processingTime,
-      isFraud: prediction.isFraud,
-      recommendations: prediction.recommendations || analysis.recommendations,
-      fraudReasons: prediction.fraudReasons || analysis.fraudReasons
-    };
+    return this._callFastApiPredict(payload);
   }
 
   async _callFastApiHealth() {
