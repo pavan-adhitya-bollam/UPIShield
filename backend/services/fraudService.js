@@ -12,8 +12,8 @@ const {
 const predictionProvider = require('./PredictionProvider');
 
 const MIN_BEHAVIORAL_HISTORY = Math.max(
-  1,
-  Number.parseInt(process.env.MIN_BEHAVIORAL_HISTORY || '3', 10)
+  10,
+  Number.parseInt(process.env.MIN_BEHAVIORAL_HISTORY || '10', 10)
 );
 const INSUFFICIENT_HISTORY_MESSAGE =
   'New Account – No Previous Transaction History. Behavioural Risk Assessment Not Available.';

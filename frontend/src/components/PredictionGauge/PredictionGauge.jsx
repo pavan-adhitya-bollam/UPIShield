@@ -2,9 +2,19 @@ import { motion } from 'framer-motion'
 import { Brain, Shield, AlertTriangle } from 'lucide-react'
 import Card from '../Card'
 
-const PredictionGauge = ({ fraudProbability = 18, riskLevel = 'LOW', confidence = 96, prediction = 'SAFE' }) => {
+const PredictionGauge = ({
+  finalRiskScore = 0,
+  mlFraudProbability = null,
+  riskLevel = 'LOW',
+  confidence = 96,
+  prediction = 'SAFE'
+}) => {
   const circumference = 2 * Math.PI * 80
-  const offset = circumference - (fraudProbability / 100) * circumference
+  const safeRiskScore = Math.min(100, Math.max(0, Math.round(Number(finalRiskScore) || 0)))
+  const offset = circumference - (safeRiskScore / 100) * circumference
+  const formattedProbability = Number.isFinite(Number(mlFraudProbability))
+    ? `${Number(mlFraudProbability).toFixed(2)}%`
+    : 'Not available'
 
   const getRiskConfig = (level) => {
     switch (level) {
@@ -115,7 +125,7 @@ const PredictionGauge = ({ fraudProbability = 18, riskLevel = 'LOW', confidence 
             
             {/* Center Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-5xl font-bold text-white">{fraudProbability}%</span>
+              <span className="text-5xl font-bold text-white">{safeRiskScore}/100</span>
               <span className={`text-sm font-medium ${riskConfig.textColor} mt-1`}>{riskLevel} RISK</span>
             </div>
           </div>
@@ -145,6 +155,10 @@ const PredictionGauge = ({ fraudProbability = 18, riskLevel = 'LOW', confidence 
               <div>
                 <p className="text-sm text-gray-400">Prediction</p>
                 <p className={`text-2xl font-bold ${riskConfig.textColor}`}>{prediction}</p>
+              </div>
+              <div className="flex items-center justify-between px-1 text-sm">
+                <span className="text-gray-400">ML Fraud Probability</span>
+                <span className="font-semibold text-white">{formattedProbability}</span>
               </div>
             </div>
             <div className="text-right">

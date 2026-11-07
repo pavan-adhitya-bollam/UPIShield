@@ -66,6 +66,7 @@ const buildBehavioralFeatures = (transactionData, previousTransactions, referenc
   const knownDevice = Boolean(transactionData.deviceId) && history.some(({ transaction }) => (
     transaction.deviceInfo?.deviceId === transactionData.deviceId
   ));
+  const deviceChanged = Boolean(transactionData.deviceId) && !knownDevice;
   const locationChanged = Boolean(transactionData.location?.city) &&
     Boolean(previous?.locationInfo?.city) &&
     previous.locationInfo.city !== transactionData.location.city;
@@ -89,6 +90,7 @@ const buildBehavioralFeatures = (transactionData, previousTransactions, referenc
     transactionFrequencyPerHour: lastHour.length,
     customerBehaviourDeviation: deviation,
     knownDevice,
+    deviceChanged,
     locationChanged,
     newBeneficiary,
     decimalPattern: Math.round(transactionAmount * 100) % 100 !== 0,

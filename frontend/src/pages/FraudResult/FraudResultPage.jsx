@@ -209,7 +209,8 @@ const FraudResultPage = () => {
             {paymentAttempted && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <PredictionGauge
-                fraudProbability={predictionData.fraudProbability}
+                finalRiskScore={predictionData.riskScore}
+                mlFraudProbability={predictionData.mlFraudProbability ?? predictionData.fraudProbability}
                 riskLevel={predictionData.riskLevel}
                 confidence={predictionData.predictionConfidence}
                 prediction={predictionData.predictionStatus === 'FRAUD' ? 'FRAUD' : 'SAFE'}
