@@ -3,6 +3,16 @@ const User = require('../models/User');
 const { parsePagination, parseSort } = require('../utils/helpers');
 const ErrorResponse = require('../utils/errorResponse');
 
+const parseFilterDate = (value, fieldName) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new ErrorResponse(`Invalid ${fieldName} format`, 400);
+  }
+
+  return date;
+};
+
 // Get merchant dashboard
 const getMerchantDashboard = async (merchantId) => {
   const merchant = await User.findById(merchantId);
@@ -83,10 +93,10 @@ const getMerchantTransactions = async (merchantId, filters = {}) => {
   if (filters.startDate || filters.endDate) {
     query['timing.date'] = {};
     if (filters.startDate) {
-      query['timing.date'].$gte = new Date(filters.startDate);
+      query['timing.date'].$gte = parseFilterDate(filters.startDate, 'start date');
     }
     if (filters.endDate) {
-      query['timing.date'].$lte = new Date(filters.endDate);
+      query['timing.date'].$lte = parseFilterDate(filters.endDate, 'end date');
     }
   }
 
@@ -114,10 +124,10 @@ const getMerchantAnalytics = async (merchantId, filters = {}) => {
   if (filters.startDate || filters.endDate) {
     query['timing.date'] = {};
     if (filters.startDate) {
-      query['timing.date'].$gte = new Date(filters.startDate);
+      query['timing.date'].$gte = parseFilterDate(filters.startDate, 'start date');
     }
     if (filters.endDate) {
-      query['timing.date'].$lte = new Date(filters.endDate);
+      query['timing.date'].$lte = parseFilterDate(filters.endDate, 'end date');
     }
   }
 
