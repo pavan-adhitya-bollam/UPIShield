@@ -233,9 +233,15 @@ const resendVerificationOtp = async (email) => {
 };
 
 // Login user
-const login = async (email, password, deviceInfo) => {
+const login = async (loginIdentifier, password, deviceInfo) => {
+  const normalizedIdentifier = loginIdentifier.includes('@')
+    ? loginIdentifier.toLowerCase().trim()
+    : loginIdentifier.replace(/\D/g, '');
+
   // Find user and include password for comparison
-  const user = await User.findOne({ email }).select('+password +refreshToken');
+  const user = await User.findOne({
+    [normalizedIdentifier.includes('@') ? 'email' : 'phone']: normalizedIdentifier
+  }).select('+password +refreshToken');
 
   if (!user) {
     throw new ErrorResponse('Invalid credentials', 401);

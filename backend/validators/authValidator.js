@@ -49,8 +49,26 @@ exports.loginValidation = [
   body('email')
     .trim()
     .notEmpty().withMessage('Email is required')
-    .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .custom((value) => {
+      const phoneDigits = value.replace(/\D/g, '');
+      const isPhoneNumber = /^[0-9]{10}$/.test(value) ||
+        (value.startsWith('+91') && phoneDigits.length === 12);
+      const isEmailAddress = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+      if (!isPhoneNumber && !isEmailAddress) {
+        throw new Error('Please provide a valid email or 10-digit mobile number');
+      }
+
+      return true;
+    })
+    .customSanitizer((value) => {
+      if (value.includes('@')) {
+        return value.toLowerCase();
+      }
+
+      const phoneDigits = value.replace(/\D/g, '');
+      return phoneDigits.length === 12 ? phoneDigits.slice(-10) : phoneDigits;
+    }),
   
   body('password')
     .notEmpty().withMessage('Password is required')

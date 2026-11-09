@@ -47,7 +47,7 @@ exports.resendVerificationOtp = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 exports.login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email: loginIdentifier, password } = req.body;
 
   // Get device info from request
   const deviceInfo = {
@@ -56,7 +56,7 @@ exports.login = asyncHandler(async (req, res) => {
     ipAddress: req.ip || 'Unknown'
   };
 
-  const result = await authService.login(email, password, deviceInfo);
+  const result = await authService.login(loginIdentifier, password, deviceInfo);
 
   setAuthCookies(res, result);
 
