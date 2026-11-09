@@ -22,12 +22,19 @@ exports.registerValidation = [
     .trim()
     .notEmpty().withMessage('Phone number is required')
     .custom((value) => {
-      // Extract only digits from phone number
       const digits = value.replace(/\D/g, '');
-      if (digits.length !== 10) {
-        throw new Error('Phone number must be 10 digits');
+      const normalizedDigits = digits.length === 12 && digits.startsWith('91')
+        ? digits.slice(-10)
+        : digits;
+
+      if (!/^[0-9]{10}$/.test(normalizedDigits)) {
+        throw new Error('Phone number must be a valid 10-digit mobile number');
       }
       return true;
+    })
+    .customSanitizer((value) => {
+      const digits = value.replace(/\D/g, '');
+      return digits.length === 12 && digits.startsWith('91') ? digits.slice(-10) : digits;
     }),
   
   body('password')

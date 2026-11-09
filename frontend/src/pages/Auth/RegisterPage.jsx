@@ -129,7 +129,18 @@ const RegisterPage = () => {
         setError(response.data?.message || 'Registration failed. Please try again.')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      const validationErrors = err.response?.data?.errors
+      if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        const messages = validationErrors
+          .map((validationError) => {
+            const field = validationError.field || validationError.path
+            return field ? `${field}: ${validationError.message}` : validationError.message
+          })
+          .filter(Boolean)
+        setError(messages.join(' '))
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
