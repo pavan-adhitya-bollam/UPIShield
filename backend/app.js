@@ -73,13 +73,15 @@ if (process.env.NODE_ENV === 'development') {
 // Rate limiting middleware
 app.use(rateLimiter);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoints
+app.get(['/health', '/api/health'], (req, res) => {
   return res.status(200).json(ApiResponse.success(200, 'Server is running', {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
   }));
 });
+
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // API routes
 app.use('/api/auth', authRoutes);

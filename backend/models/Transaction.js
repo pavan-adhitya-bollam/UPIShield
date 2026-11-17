@@ -80,7 +80,11 @@ const transactionSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['UPI', 'PHONEPE', 'GOOGLE_PAY', 'PAYTM', 'BHIM'],
+    enum: [
+      'UPI', 'PHONEPE', 'GOOGLE_PAY', 'PAYTM', 'BHIM',
+      'BANK_ACCOUNT', 'BANK',
+      'DEBIT_CARD', 'CARD'
+    ],
     default: 'UPI'
   },
   status: {

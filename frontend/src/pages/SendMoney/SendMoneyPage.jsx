@@ -34,14 +34,26 @@ const SendMoneyPage = () => {
     setTimelineEvents({ paymentCreatedAt, fraudCheckStartedAt })
     try {
       // Map frontend form fields to backend API format
+      const mapTransactionType = (type) => {
+        if (type === 'merchant') return 'P2M'
+        if (type === 'bank') return 'TRANSFER'
+        return 'P2P'
+      }
+
+      const mapPaymentMethod = (method) => {
+        if (method === 'bank') return 'BANK_ACCOUNT'
+        if (method === 'card') return 'DEBIT_CARD'
+        return 'UPI'
+      }
+
       const transactionPayload = {
         amount: data.amount,
         receiverUpi: data.receiverUpiId, // Map receiverUpiId to receiverUpi
         merchantCategory: data.merchantCategory,
         purpose: data.purpose,
         note: data.paymentNote, // Map paymentNote to note
-        transactionType: data.transactionType === 'merchant' ? 'P2M' : 'P2P',
-        paymentMethod: data.paymentMethod === 'upi' ? 'UPI' : data.paymentMethod
+        transactionType: mapTransactionType(data.transactionType),
+        paymentMethod: mapPaymentMethod(data.paymentMethod)
       }
       
       const response = await transactionService.assessTransaction(transactionPayload)
@@ -98,7 +110,16 @@ const SendMoneyPage = () => {
       })
     } catch (err) {
       console.error('Transaction verification error:', err)
-      setError(err.response?.data?.message || 'Failed to verify transaction. Please try again.')
+      const validationErrors = err.response?.data?.errors
+      if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        const messages = validationErrors
+          .map((validationError) => validationError.message || validationError.msg)
+          .filter(Boolean)
+        const uniqueMessages = [...new Set(messages)]
+        setError(uniqueMessages.join('. ') || err.response?.data?.message || 'Failed to verify transaction. Please try again.')
+      } else {
+        setError(err.response?.data?.message || 'Failed to verify transaction. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

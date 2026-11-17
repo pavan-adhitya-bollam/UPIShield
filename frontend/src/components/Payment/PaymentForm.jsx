@@ -38,11 +38,16 @@ const PaymentForm = ({ onVerify, onClear, onContinue, onSelectBeneficiary }) => 
   const validateForm = () => {
     const newErrors = {}
 
-    // Validate UPI ID
+    // Validate UPI ID or Bank Account Number
     if (!formData.receiverUpiId.trim()) {
-      newErrors.receiverUpiId = 'UPI ID is required'
-    } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(formData.receiverUpiId)) {
-      newErrors.receiverUpiId = 'Invalid UPI ID format (e.g., john@upi)'
+      newErrors.receiverUpiId = formData.transactionType === 'bank' || formData.paymentMethod === 'bank'
+        ? 'Receiver UPI ID or Account Number is required'
+        : 'UPI ID is required'
+    } else if (
+      !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(formData.receiverUpiId.trim()) &&
+      !/^[0-9]{9,18}$/.test(formData.receiverUpiId.trim())
+    ) {
+      newErrors.receiverUpiId = 'Invalid format (e.g., john@upi or 9-18 digit account number)'
     }
 
     // Validate Amount
@@ -127,10 +132,12 @@ const PaymentForm = ({ onVerify, onClear, onContinue, onSelectBeneficiary }) => 
         </div>
 
         <div className="space-y-4">
-          {/* Receiver UPI ID */}
+          {/* Receiver UPI ID / Account Number */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Receiver UPI ID *
+              {formData.transactionType === 'bank' || formData.paymentMethod === 'bank'
+                ? 'Receiver UPI ID or Account Number *'
+                : 'Receiver UPI ID *'}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
@@ -139,7 +146,11 @@ const PaymentForm = ({ onVerify, onClear, onContinue, onSelectBeneficiary }) => 
                 name="receiverUpiId"
                 value={formData.receiverUpiId}
                 onChange={handleChange}
-                placeholder="e.g., john@upi"
+                placeholder={
+                  formData.transactionType === 'bank' || formData.paymentMethod === 'bank'
+                    ? 'e.g., john@upi or 123456789012'
+                    : 'e.g., john@upi'
+                }
                 className={`w-full pl-10 pr-4 py-3 bg-dark-600/50 border rounded-xl 
                          focus:outline-none focus:ring-2 focus:ring-primary-500/20 
                          transition-all duration-300 placeholder-gray-500 text-white

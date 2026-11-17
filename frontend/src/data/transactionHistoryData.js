@@ -324,11 +324,11 @@ export const transactionTimelineData = [
 ]
 
 export const filterOptions = {
-  transactionTypes: ['All', 'P2P Transfer', 'Merchant Payment', 'Bill Payment', 'Subscription', 'Recharge'],
+  transactionTypes: ['All', 'P2P Transfer', 'Merchant Payment', 'Bill Payment', 'Subscription', 'Recharge', 'Bank Transfer'],
   statuses: ['All', 'Completed', 'Pending', 'Blocked', 'Failed'],
   riskLevels: ['All', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
   merchantCategories: ['All', 'E-commerce', 'Food Delivery', 'Utilities', 'Entertainment', 'Travel', 'Healthcare'],
-  paymentMethods: ['All', 'UPI', 'Credit Card', 'Debit Card', 'Net Banking'],
+  paymentMethods: ['All', 'UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Bank Account'],
   sortOptions: [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },

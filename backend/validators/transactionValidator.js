@@ -3,18 +3,37 @@ const { body, param, query } = require('express-validator');
 const transactionStatuses = ['PENDING', 'PROCESSING', 'SUCCESS', 'FAILED', 'CANCELLED', 'BLOCKED'];
 const riskLevels = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const transactionTypes = ['P2P', 'P2M', 'SELF', 'BILL', 'RECHARGE', 'TRANSFER'];
+const allowedPaymentMethods = [
+  'UPI', 'PHONEPE', 'GOOGLE_PAY', 'PAYTM', 'BHIM',
+  'BANK_ACCOUNT', 'BANK',
+  'DEBIT_CARD', 'CARD'
+];
 
 // Send money validation
 exports.sendMoneyValidation = [
   body('receiverUpi')
     .trim()
     .notEmpty().withMessage('Receiver UPI is required')
-    .matches(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/).withMessage('Invalid UPI ID format'),
+    .custom((value) => {
+      const isUpi = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(value);
+      const isAccount = /^[0-9]{9,18}$/.test(value);
+      if (!isUpi && !isAccount) {
+        throw new Error('Invalid UPI ID or account number format');
+      }
+      return true;
+    }),
 
   body('senderUpi')
     .optional({ checkFalsy: true })
     .trim()
-    .matches(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/).withMessage('Invalid sender UPI format'),
+    .custom((value) => {
+      const isUpi = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(value);
+      const isAccount = /^[0-9]{9,18}$/.test(value);
+      if (!isUpi && !isAccount) {
+        throw new Error('Invalid sender UPI or account format');
+      }
+      return true;
+    }),
 
   body('amount')
     .notEmpty().withMessage('Amount is required')
@@ -39,11 +58,34 @@ exports.sendMoneyValidation = [
 
   body('transactionType')
     .optional({ checkFalsy: true })
+    .customSanitizer((value) => {
+      if (!value) return 'P2P';
+      const normalized = String(value).trim().toLowerCase();
+      if (normalized === 'person' || normalized === 'person to person' || normalized === 'p2p') return 'P2P';
+      if (normalized === 'merchant' || normalized === 'merchant payment' || normalized === 'p2m') return 'P2M';
+      if (normalized === 'bank' || normalized === 'bank transfer' || normalized === 'bank_transfer' || normalized === 'transfer') return 'TRANSFER';
+      if (normalized === 'self') return 'SELF';
+      if (normalized === 'bill') return 'BILL';
+      if (normalized === 'recharge') return 'RECHARGE';
+      return String(value).toUpperCase();
+    })
     .isIn(transactionTypes).withMessage('Invalid transaction type'),
 
   body('paymentMethod')
     .optional({ checkFalsy: true })
-    .isIn(['UPI', 'PHONEPE', 'GOOGLE_PAY', 'PAYTM', 'BHIM']).withMessage('Invalid payment method')
+    .customSanitizer((value) => {
+      if (!value) return 'UPI';
+      const normalized = String(value).trim().toLowerCase();
+      if (normalized === 'upi') return 'UPI';
+      if (normalized === 'bank' || normalized === 'bank account' || normalized === 'bank_account') return 'BANK_ACCOUNT';
+      if (normalized === 'card' || normalized === 'debit card' || normalized === 'debit_card') return 'DEBIT_CARD';
+      if (normalized === 'phonepe') return 'PHONEPE';
+      if (normalized === 'google_pay' || normalized === 'google pay' || normalized === 'gpay') return 'GOOGLE_PAY';
+      if (normalized === 'paytm') return 'PAYTM';
+      if (normalized === 'bhim') return 'BHIM';
+      return String(value).toUpperCase();
+    })
+    .isIn(allowedPaymentMethods).withMessage('Invalid payment method')
 ];
 
 const mpinValidation = [
