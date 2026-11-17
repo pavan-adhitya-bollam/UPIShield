@@ -33,7 +33,7 @@ const buildSafeUser = (user) => ({
 
 const generateTokenHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
-const VERIFICATION_OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+const VERIFICATION_OTP_RESEND_COOLDOWN_MS = 15 * 1000;
 
 const setVerificationOtp = async (user, deliveryMethod = 'email', enforceCooldown = false) => {
   const now = Date.now();
@@ -84,7 +84,7 @@ const setVerificationOtp = async (user, deliveryMethod = 'email', enforceCooldow
 
 const PASSWORD_RESET_OTP_TTL_MS = 10 * 60 * 1000;
 const PASSWORD_RESET_TOKEN_TTL_MS = 10 * 60 * 1000;
-const PASSWORD_RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+const PASSWORD_RESET_RESEND_COOLDOWN_MS = 15 * 1000;
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
 
 const setPasswordResetOtp = async (user, deliveryMethod = 'email') => {

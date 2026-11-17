@@ -23,7 +23,7 @@ const ForgotPasswordPage = () => {
   const [resetToken, setResetToken] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [countdown, setCountdown] = useState(60)
+  const [countdown, setCountdown] = useState(15)
   const [canResend, setCanResend] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -72,7 +72,7 @@ const ForgotPasswordPage = () => {
       if (response.data.success) {
         setStep(2)
         setMaskedPhone(response.data.data?.maskedPhone || '')
-        setCountdown(60)
+        setCountdown(15)
         setCanResend(false)
         setSuccess(deliveryMethod === 'sms'
           ? `OTP accepted for delivery to ${response.data.data?.maskedPhone || 'your registered mobile number'}.`
@@ -153,7 +153,7 @@ const ForgotPasswordPage = () => {
       const response = await authService.forgotPassword(email, deliveryMethod)
       
       if (response.data.success) {
-        setCountdown(60)
+        setCountdown(15)
         setCanResend(false)
         setOtp(['', '', '', '', '', ''])
         setSuccess(deliveryMethod === 'sms'

@@ -16,7 +16,7 @@ const OtpVerificationPage = () => {
   const email = location.state?.email || ''
   const verificationMethod = location.state?.verificationMethod || 'email'
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [countdown, setCountdown] = useState(60)
+  const [countdown, setCountdown] = useState(15)
   const [canResend, setCanResend] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -143,7 +143,7 @@ const OtpVerificationPage = () => {
       const response = await authService.resendOtp(email)
       
       if (response.data.success) {
-        setCountdown(60)
+        setCountdown(15)
         setCanResend(false)
         setOtp(['', '', '', '', '', ''])
       }

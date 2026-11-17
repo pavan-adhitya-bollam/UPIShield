@@ -212,7 +212,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
         <div className="max-w-7xl mx-auto text-center text-gray-400">
-          <p>&copy; 2024 UPI Shield. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} UPI Shield. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -162,7 +162,7 @@ const AboutSystem = ({ data = aboutSystemData }) => {
             <p className="text-sm font-medium text-white mb-2">Legal Information</p>
             <p className="text-xs text-gray-400">
               This system is protected by intellectual property laws. Unauthorized reproduction, 
-              distribution, or use of this software is strictly prohibited. All rights reserved © 2024.
+              distribution, or use of this software is strictly prohibited. All rights reserved © {new Date().getFullYear()}.
             </p>
           </div>
         </div>

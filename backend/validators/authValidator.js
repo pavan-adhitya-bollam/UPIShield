@@ -16,7 +16,7 @@ exports.registerValidation = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
   
   body('phone')
     .trim()
@@ -87,7 +87,7 @@ exports.verifyEmailValidation = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
   
   body('otp')
     .trim()
@@ -101,7 +101,7 @@ exports.resendVerificationOtpValidation = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail()
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false })
 ];
 
 // Forgot password validation
@@ -110,7 +110,7 @@ exports.forgotPasswordValidation = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
 
   body('deliveryMethod')
     .optional()
@@ -123,7 +123,7 @@ exports.verifyResetOtpValidation = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
 
   body('otp')
     .trim()

@@ -57,7 +57,7 @@ router.post('/forgot-password', authRateLimiter, forgotPasswordValidation, valid
 // @route   POST /api/auth/verify-reset-otp
 // @desc    Verify password reset OTP
 // @access  Public
-router.post('/verify-reset-otp', authRateLimiter, verifyResetOtpValidation, validate, authController.verifyResetOtp);
+router.post('/verify-reset-otp', verifyResetOtpValidation, validate, authController.verifyResetOtp);
 
 // @route   POST /api/auth/verify-email
 // @desc    Verify email
