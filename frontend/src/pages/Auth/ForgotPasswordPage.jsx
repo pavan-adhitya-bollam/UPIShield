@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { Shield, Mail, Smartphone, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, RefreshCw } from 'lucide-react'
+import { Shield, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, RefreshCw } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import Button from '../../components/Button'
 import Card from '../../components/Card'
@@ -15,8 +15,6 @@ const ForgotPasswordPage = () => {
   // Step 3: Reset password
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
-  const [deliveryMethod, setDeliveryMethod] = useState('email')
-  const [maskedPhone, setMaskedPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -67,19 +65,21 @@ const ForgotPasswordPage = () => {
     setSuccess('')
 
     try {
-      const response = await authService.forgotPassword(email, deliveryMethod)
+      const response = await authService.forgotPassword(email, 'email')
       
       if (response.data.success) {
         setStep(2)
-        setMaskedPhone(response.data.data?.maskedPhone || '')
         setCountdown(15)
         setCanResend(false)
-        setSuccess(deliveryMethod === 'sms'
-          ? `OTP accepted for delivery to ${response.data.data?.maskedPhone || 'your registered mobile number'}.`
-          : 'If an account exists for that email, a password reset OTP has been sent.')
+        setSuccess(response.data?.message || 'OTP sent to your email')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP. Please try again.')
+      const backendMessage = err.response?.data?.message || err.response?.data?.error
+      if (err.response?.status === 404 || (backendMessage && backendMessage.toLowerCase().includes('not registered'))) {
+        setError('Please register first. This email is not registered.')
+      } else {
+        setError(backendMessage || 'Failed to send OTP. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -150,18 +150,21 @@ const ForgotPasswordPage = () => {
     setSuccess('')
 
     try {
-      const response = await authService.forgotPassword(email, deliveryMethod)
+      const response = await authService.forgotPassword(email, 'email')
       
       if (response.data.success) {
         setCountdown(15)
         setCanResend(false)
         setOtp(['', '', '', '', '', ''])
-        setSuccess(deliveryMethod === 'sms'
-          ? 'A new OTP was accepted for delivery by the SMS provider.'
-          : 'A new password reset OTP has been sent.')
+        setSuccess(response.data?.message || 'OTP sent to your email')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.')
+      const backendMessage = err.response?.data?.message || err.response?.data?.error
+      if (err.response?.status === 404 || (backendMessage && backendMessage.toLowerCase().includes('not registered'))) {
+        setError('Please register first. This email is not registered.')
+      } else {
+        setError(backendMessage || 'Failed to resend OTP. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -241,9 +244,9 @@ const ForgotPasswordPage = () => {
             </h2>
             <p className="text-gray-400">
               {step === 1 
-                ? 'Choose where to receive your verification code'
+                ? 'Enter your registered email to receive a password reset OTP'
                 : step === 2
-                ? `Enter the 6-digit code sent to ${deliveryMethod === 'sms' ? maskedPhone : 'your email'}`
+                ? 'Enter the 6-digit code sent to your email'
                 : 'Create a new secure password'
               }
             </p>
@@ -291,38 +294,6 @@ const ForgotPasswordPage = () => {
                              transition-all duration-300 placeholder-gray-500 text-white"
                   />
                 </div>
-              </div>
-
-              <div>
-                <p className="block text-sm font-medium text-gray-300 mb-2">Receive OTP by</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'email', label: 'Email OTP', icon: Mail },
-                    { value: 'sms', label: 'SMS OTP', icon: Smartphone },
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => {
-                        setDeliveryMethod(value)
-                        setError('')
-                      }}
-                      className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-sm transition-all ${
-                        deliveryMethod === value
-                          ? 'border-primary-500 bg-primary-500/10 text-primary-300'
-                          : 'border-white/10 text-gray-400 hover:border-white/30'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {deliveryMethod === 'sms' && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    The OTP will be sent only to the mobile number registered with this account.
-                  </p>
-                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

@@ -166,14 +166,12 @@ const register = async (userData) => {
         existingUser.role = normalizedRole;
         await existingUser.save();
 
-        const registrationDeliveryMethod =
-          process.env.SMS_REGISTRATION_VERIFICATION_ENABLED === 'true' ? 'sms' : 'email';
-        await setVerificationOtp(existingUser, registrationDeliveryMethod);
+        await setVerificationOtp(existingUser, 'email');
 
         return {
           user: buildSafeUser(existingUser),
           verificationSent: true,
-          verificationMethod: registrationDeliveryMethod
+          verificationMethod: 'email'
         };
       }
       throw new ErrorResponse('Email already registered', 400);
@@ -203,14 +201,12 @@ const register = async (userData) => {
     role: normalizedRole
   });
 
-  const registrationDeliveryMethod =
-    process.env.SMS_REGISTRATION_VERIFICATION_ENABLED === 'true' ? 'sms' : 'email';
-  await setVerificationOtp(user, registrationDeliveryMethod);
+  await setVerificationOtp(user, 'email');
 
   return {
     user: buildSafeUser(user),
     verificationSent: true,
-    verificationMethod: registrationDeliveryMethod
+    verificationMethod: 'email'
   };
 
 };
@@ -345,27 +341,15 @@ const forgotPassword = async (email, deliveryMethod = 'email') => {
   );
 
   if (!user) {
-    return {
-      message: 'If an account exists for that email, a password reset OTP has been sent.'
-    };
+    throw new ErrorResponse('Email not registered. Please register first.', 404);
   }
 
-  if (deliveryMethod === 'sms' && !user.phone) {
-    throw new ErrorResponse('No registered mobile number is available. Email recovery is available.', 400);
-  }
-
-  if (deliveryMethod === 'sms') {
-    formatIndianPhoneNumber(user.phone);
-  }
-
-  await setPasswordResetOtp(user, deliveryMethod);
+  // Always use email OTP delivery
+  await setPasswordResetOtp(user, 'email');
 
   return {
-    message: deliveryMethod === 'sms'
-      ? 'Password reset OTP accepted by the SMS provider.'
-      : 'If an account exists for that email, a password reset OTP has been sent.',
-    deliveryMethod,
-    maskedPhone: deliveryMethod === 'sms' ? maskPhone(user.phone) : undefined
+    message: 'OTP sent to your email',
+    deliveryMethod: 'email'
   };
 };
 

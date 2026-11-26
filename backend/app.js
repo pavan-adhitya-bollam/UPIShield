@@ -34,7 +34,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
-  'http://localhost:3003'
+  'http://localhost:3003',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
 ];
 
 if (process.env.CLIENT_URL && !allowedOrigins.includes(process.env.CLIENT_URL)) {
@@ -46,6 +48,16 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
       return;
+    }
+
+    try {
+      const { hostname } = new URL(origin);
+      if (hostname.endsWith('.vercel.app') || hostname === 'localhost' || hostname === '127.0.0.1') {
+        callback(null, true);
+        return;
+      }
+    } catch {
+      // invalid URL
     }
 
     callback(new Error('Not allowed by CORS'));
@@ -76,7 +88,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(rateLimiter);
 
 // Health check endpoints
-app.get(['/health', '/api/health'], (req, res) => {
+app.get(['/', '/health', '/api/health'], (req, res) => {
   return res.status(200).json(ApiResponse.success(200, 'Server is running', {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'

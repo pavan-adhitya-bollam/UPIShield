@@ -158,7 +158,7 @@ class PredictionProvider {
         status: error.response?.status
       });
 
-      throw error;
+      return this._fallback('predict', transactionPayload);
     }
   }
 
@@ -176,7 +176,7 @@ class PredictionProvider {
         status: error.response?.status
       });
 
-      throw error;
+      return this._fallback('analyze', transactionPayload);
     }
   }
 
